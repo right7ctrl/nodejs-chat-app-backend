@@ -37,6 +37,7 @@ io.sockets.on('connect', (socket) => {
                     console.log('\nCurrent Authorized Count:', authorizedUserCount, '');
                 } else {
                     console.log('UUID(' + uuid + ') already authorized & online');
+                    //TODO: first session has to be destroyed??
                 }
             } else {
                 console.log('Unauthorized:', user);
@@ -48,6 +49,7 @@ io.sockets.on('connect', (socket) => {
 
 
     socket.on('send_msg', (data) => {
+        console.log(data);
         try {
             if (data.from == uuid && authorizedUsers[data.from] != undefined && authorizedUsers[data.from] != '' && authorizedUsers[data.from] != '') {
                 socket.to(data.to).emit('receive_msg', data);

@@ -9,20 +9,33 @@
     <input type="text" placeholder="username" id="unmid" />
     <input type="text" placeholder="uid" id="uuidd" />
     <button onclick="registerSocket()" id="conn">conn</button>
+    <button onclick="sendMessage()" id="conn">msg</button>
 
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script>
+      var connected = false;
+      var socket;
+
       function registerSocket() {
         var unm = document.getElementById("unmid");
         var uid = document.getElementById("uuidd").value;
+        socket = io("http://localhost:3000", { query: "uuid=" + uid });
 
-        var socket = io("http://localhost:3000", { query: "uuid=" + uid });
         socket.on("connect", function() {
           socket.emit("register", { uuid: uid, uname: unm.value });
-
-          socket.on("public", data => {
+          socket.on("receive_msg", data => {
             console.log(data);
           });
+          socket.on("disconnect", data => {});
+        });
+      }
+
+      function sendMessage() {
+        socket.emit("send_msg", {
+          to: 123,
+          from: 789,
+          message: "msg content",
+          onCreate: "test"
         });
       }
     </script>
