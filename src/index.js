@@ -16,20 +16,14 @@ let onlineCount = 0;
 file:///Users/right7ctrl/Desktop/proj/chat_socket/client/index.html
 */
 
-
-
 io.sockets.on('connect', (socket) => {
     onlineCount += 1;
     console.log('\nCurrent Online Count:', onlineCount);
     let uuid;
-
     socket.on('register', (user) => {
         try {
-
             if (user.uuid != undefined && user.uuid != '' && user.uuid != null) {
                 uuid = user.uuid;
-
-
                 if (onlineUsers[uuid] == undefined) {
                     onlineUsers[uuid] = {
                         ID: user.uuid,
@@ -40,13 +34,8 @@ io.sockets.on('connect', (socket) => {
                     authorizedOnlineCount += 1;
                     console.log('\nCurrent Authorized Count:', authorizedOnlineCount, '');
                 } else {
-                    console.log('UUID('+uuid+') already authorizded & online');
+                    console.log('UUID(' + uuid + ') already authorized & online');
                 }
-
-
-
-
-
             } else {
                 console.log('Unauthorized:', user);
             }
@@ -54,9 +43,6 @@ io.sockets.on('connect', (socket) => {
             console.log(e);
         }
     });
-
-
-
 
 
     socket.on('disconnect', (data) => {
@@ -71,12 +57,6 @@ io.sockets.on('connect', (socket) => {
 
 
 });
-
-
-
-
-
-
 
 http.listen(3000, function () {
     console.log('listening on *:3000');
