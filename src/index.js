@@ -12,8 +12,8 @@ let authorizedOnlineCount = 0;
 let onlineCount = 0;
 
 /*
-{"uuid": 4027292347129, "uname": "Murat"}
-file:///Users/right7ctrl/Desktop/proj/chat_socket/client/index.html
+USER -  {"uuid": 4027292347129, "uname": "Murat"}
+MSG - {"to": 93583094, "from": 492349203, "message": "msg content", "onCreate": ""}
 */
 
 io.sockets.on('connect', (socket) => {
@@ -24,12 +24,13 @@ io.sockets.on('connect', (socket) => {
         try {
             if (user.uuid != undefined && user.uuid != '' && user.uuid != null) {
                 uuid = user.uuid;
-                if (onlineUsers[uuid] == undefined) {
+                if (onlineUsers[uuid] == undefined || onlineUsers[uuid] == null || onlineUsers[uuid] == '') {
                     onlineUsers[uuid] = {
                         ID: user.uuid,
                         uname: user.uname,
                         uuid: socket.handshake.query.uuid
                     };
+                    socket.join(uuid);
                     console.log('Authorized', user);
                     authorizedOnlineCount += 1;
                     console.log('\nCurrent Authorized Count:', authorizedOnlineCount, '');
@@ -41,6 +42,20 @@ io.sockets.on('connect', (socket) => {
             }
         } catch (e) {
             console.log(e);
+        }
+    });
+
+
+    socket.on('sendmsg', (data) => {
+        if (data.from == uuid && onlineUsers[data.from] != undefined && onlineUsers[data.from] != '' && onlineUsers[data.from] != '') {
+            try {
+
+            } catch (e) {
+                console.log(e);
+            }
+
+        } else {
+            console.log('Unauthorized msg attempt', data);
         }
     });
 
