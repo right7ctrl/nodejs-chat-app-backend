@@ -20,6 +20,7 @@ io.sockets.on('connect', (socket) => {
     onlineCount += 1;
     console.log('\nCurrent Online Count:', onlineCount);
     let uuid;
+    //authorize user to get notify by socket server
     socket.on('register', (user) => {
         try {
             if (user.uuid != undefined && user.uuid != '' && user.uuid != null) {
@@ -57,6 +58,15 @@ io.sockets.on('connect', (socket) => {
         } catch (e) {
             console.log(e);
         }
+    });
+
+
+    socket.on('seen_msg', (data) => {
+        //TODO
+    });
+
+    socket.on('typing_status', (data) => {
+        //TODO
     });
 
 
