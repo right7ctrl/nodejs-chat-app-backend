@@ -6,14 +6,14 @@ app.get('/', function (req, res) {
     res.send('<h1>Hello world</h1>');
 });
 
-let onlineUsers = {};
-let authorizedOnlineCount = 0;
+let authorizedUsers = {};
+let authorizedUserCount = 0;
 //includes non-authorized
 let onlineCount = 0;
 
 /*
-USER -  {"uuid": 4027292347129, "uname": "Murat"}
-MSG - {"to": 93583094, "from": 492349203, "message": "msg content", "onCreate": ""}
+USERMODEL -  {"uuid": 4027292347129, "uname": "Murat"}
+MSGMODEL - {"to": 93583094, "from": 492349203, "message": "msg content", "onCreate": ""}
 */
 
 io.sockets.on('connect', (socket) => {
@@ -24,16 +24,16 @@ io.sockets.on('connect', (socket) => {
         try {
             if (user.uuid != undefined && user.uuid != '' && user.uuid != null) {
                 uuid = user.uuid;
-                if (onlineUsers[uuid] == undefined || onlineUsers[uuid] == null || onlineUsers[uuid] == '') {
-                    onlineUsers[uuid] = {
+                if (authorizedUsers[uuid] == undefined || authorizedUsers[uuid] == null || authorizedUsers[uuid] == '') {
+                    authorizedUsers[uuid] = {
                         ID: user.uuid,
                         uname: user.uname,
                         uuid: socket.handshake.query.uuid
                     };
                     socket.join(uuid);
                     console.log('Authorized', user);
-                    authorizedOnlineCount += 1;
-                    console.log('\nCurrent Authorized Count:', authorizedOnlineCount, '');
+                    authorizedUserCount += 1;
+                    console.log('\nCurrent Authorized Count:', authorizedUserCount, '');
                 } else {
                     console.log('UUID(' + uuid + ') already authorized & online');
                 }
@@ -46,28 +46,33 @@ io.sockets.on('connect', (socket) => {
     });
 
 
-    socket.on('sendmsg', (data) => {
-        if (data.from == uuid && onlineUsers[data.from] != undefined && onlineUsers[data.from] != '' && onlineUsers[data.from] != '') {
-            try {
-
-            } catch (e) {
-                console.log(e);
+    socket.on('send_msg', (data) => {
+        try {
+            if (data.from == uuid && authorizedUsers[data.from] != undefined && authorizedUsers[data.from] != '' && authorizedUsers[data.from] != '') {
+                socket.to(data.to).emit('receive_msg', data);
+                // TODO: handle message sent and seen status
+            } else {
+                console.log('Unauthorized msg attempt', data);
             }
-
-        } else {
-            console.log('Unauthorized msg attempt', data);
+        } catch (e) {
+            console.log(e);
         }
     });
 
 
     socket.on('disconnect', (data) => {
-        onlineCount -= 1;
-        if (onlineUsers[uuid] != undefined && onlineUsers[uuid] != null && onlineUsers[uuid] != '') {
-            delete onlineUsers[uuid];
-            authorizedOnlineCount -= 1;
+        try {
+            onlineCount -= 1;
+            if (authorizedUsers[uuid] != undefined && authorizedUsers[uuid] != null && authorizedUsers[uuid] != '') {
+                delete authorizedUsers[uuid];
+                authorizedUserCount -= 1;
+            }
+            console.log('\nCurrent Online Count:', onlineCount);
+            console.log('\nCurrent Authorized Count:', authorizedUserCount);
+        } catch (e) {
+            console.log(e);
         }
-        console.log('\nCurrent Online Count:', onlineCount);
-        console.log('\nCurrent Authorized Count:', authorizedOnlineCount);
+
     });
 
 
