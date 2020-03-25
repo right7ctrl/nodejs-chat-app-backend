@@ -33,7 +33,6 @@
       function sendMessage() {
         socket.emit("send_msg", {
           to: 123,
-          from: 789,
           message: "msg content",
           onCreate: "test"
         });

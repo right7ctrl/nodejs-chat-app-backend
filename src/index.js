@@ -13,24 +13,26 @@ let onlineCount = 0;
 
 /*
 USERMODEL -  {"uuid": 4027292347129, "uname": "Murat"}
-MSGMODEL - {"to": 93583094, "from": 492349203, "message": "msg content", "onCreate": ""}
+MSGMODEL - {"to": 93583094, message": "msg content", "onCreate": ""}
 */
 
 io.sockets.on('connect', (socket) => {
     onlineCount += 1;
     console.log('\nCurrent Online Count:', onlineCount);
     let uuid;
+
     //authorize user to get notify by socket server
     socket.on('register', (user) => {
         try {
             if (user.uuid != undefined && user.uuid != '' && user.uuid != null) {
                 uuid = user.uuid;
-                if (authorizedUsers[uuid] == undefined || authorizedUsers[uuid] == null || authorizedUsers[uuid] == '') {
+                if (authorizedUsers[uuid] == undefined || authorizedUsers[uuid] == null || authorizedUsers[uuid] == '' && socket.handshake.query.uuid != undefined) {
                     authorizedUsers[uuid] = {
                         ID: user.uuid,
                         uname: user.uname,
                         uuid: socket.handshake.query.uuid
                     };
+                    uuid = socket.handshake.query.uuid;
                     socket.join(uuid);
                     console.log('Authorized', user);
                     authorizedUserCount += 1;
@@ -51,8 +53,12 @@ io.sockets.on('connect', (socket) => {
     socket.on('send_msg', (data) => {
         console.log(data);
         try {
-            if (data.from == uuid && authorizedUsers[data.from] != undefined && authorizedUsers[data.from] != '' && authorizedUsers[data.from] != '') {
-                socket.to(data.to).emit('receive_msg', data);
+            if (uuid != undefined && uuid != '' && uuid != null && authorizedUsers[uuid] != undefined && authorizedUsers[uuid] != '' && authorizedUsers[uuid] != '') {
+                socket.to(data.to).emit('receive_msg', {
+                    "from": uuid,
+                    "message": data.message,
+                    "onCreate": data.onCreate
+                });
                 // TODO: handle message sent and seen status
             } else {
                 console.log('Unauthorized msg attempt', data);
