@@ -1,6 +1,16 @@
 var app = require('express')();
 var http = require('http').createServer(app);
 let io = require('socket.io').listen(http);
+let mysql = require('mysql2');
+
+const pool = mysql.createPool({
+    host: 'localhost',
+    user: 'root',
+    database: 'test',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
 
 app.get('/', function (req, res) {
     res.send('<h1>Hello world</h1>');
@@ -54,6 +64,12 @@ io.sockets.on('connect', (socket) => {
         console.log(data);
         try {
             if (uuid != undefined && uuid != '' && uuid != null && authorizedUsers[uuid] != undefined && authorizedUsers[uuid] != '' && authorizedUsers[uuid] != '') {
+                //insert DB
+              /*   pool.query("SELECT field FROM atable", function(err, rows, fields) {
+                    // Connection is automatically released when query resolves
+                 }) */
+
+
                 socket.to(data.to).emit('receive_msg', {
                     "from": uuid,
                     "message": data.message,
