@@ -8,6 +8,7 @@
   <body>
     <input type="text" placeholder="username" id="unmid" />
     <input type="text" placeholder="uid" id="uuidd" />
+    <input type="text" placeholder="msg" id="msgg" />
     <button onclick="registerSocket()" id="conn">conn</button>
     <button onclick="sendMessage()" id="conn">msg</button>
 
@@ -32,8 +33,8 @@
 
       function sendMessage() {
         socket.emit("send_msg", {
-          to: 123,
-          message: "msg content",
+          to: 789675775,
+          message: document.getElementById('msgg').value,
           onCreate: "test"
         });
       }

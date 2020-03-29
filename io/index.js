@@ -10,7 +10,7 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
-  });
+});
 
 app.get('/', function (req, res) {
     res.send('<h1>Hello world</h1>');
@@ -31,12 +31,13 @@ io.sockets.on('connect', (socket) => {
     console.log('\nCurrent Online Count:', onlineCount);
     let uuid;
 
+
     //authorize user to get notify by socket server
     socket.on('register', (user) => {
         try {
             if (user.uuid != undefined && user.uuid != '' && user.uuid != null) {
                 uuid = user.uuid;
-                if (authorizedUsers[uuid] == undefined || authorizedUsers[uuid] == null || authorizedUsers[uuid] == '' && socket.handshake.query.uuid != undefined) {
+                if (authorizedUsers[uuid] == undefined || authorizedUsers[uuid] == null || authorizedUsers[uuid] == '' && socket.handshake.query.uuid != undefined && socket.handshake.query.uuid == user.uuid) {
                     authorizedUsers[uuid] = {
                         ID: user.uuid,
                         uname: user.uname,
@@ -47,6 +48,8 @@ io.sockets.on('connect', (socket) => {
                     console.log('Authorized', user);
                     authorizedUserCount += 1;
                     console.log('\nCurrent Authorized Count:', authorizedUserCount, '');
+                    socket.broadcast.emit('active_users', authorizedUsers);
+
                 } else {
                     console.log('UUID(' + uuid + ') already authorized & online');
                     //TODO: first session has to be destroyed??
@@ -65,11 +68,9 @@ io.sockets.on('connect', (socket) => {
         try {
             if (uuid != undefined && uuid != '' && uuid != null && authorizedUsers[uuid] != undefined && authorizedUsers[uuid] != '' && authorizedUsers[uuid] != '') {
                 //insert DB
-              /*   pool.query("SELECT field FROM atable", function(err, rows, fields) {
-                    // Connection is automatically released when query resolves
-                 }) */
-
-
+                /*   pool.query("SELECT field FROM atable", function(err, rows, fields) {
+                      // Connection is automatically released when query resolves
+                   }) */
                 socket.to(data.to).emit('receive_msg', {
                     "from": uuid,
                     "message": data.message,
@@ -103,6 +104,7 @@ io.sockets.on('connect', (socket) => {
             }
             console.log('\nCurrent Online Count:', onlineCount);
             console.log('\nCurrent Authorized Count:', authorizedUserCount);
+            socket.broadcast.emit('active_users', authorizedUsers);
         } catch (e) {
             console.log(e);
         }
