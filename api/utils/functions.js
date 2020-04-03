@@ -5,6 +5,6 @@ module.exports = checkObject = (val = {}) => {
 }
 
 module.exports = checkParam = (val) => {
-    if (val != null && val != '' && val != undefined) return true;
+    if (val != null && val !== '' && val != undefined) return true;
     return false;
 }

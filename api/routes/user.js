@@ -8,7 +8,7 @@ router.post('/list/shuffle', (req, res) => {
   console.log(process.env);
   try {
     if (checkObject(req.body)) {
-      pool.query('SELECT uuid as _uuid, full_name, profile_pic_url, isOnline FROM users ORDER BY RAND() LIMIT 20', (err, rows, fields) => {
+      pool.query('SELECT uuid, full_name, profile_pic_url, isOnline FROM users ORDER BY RAND() LIMIT 20', (err, rows, fields) => {
         if (!err) {
           res.json(rows);
         } else {

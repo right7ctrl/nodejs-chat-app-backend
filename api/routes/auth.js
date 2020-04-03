@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db_pool');
 const jwt = require('jsonwebtoken');
-require('../utils/functions');
 const moment = require('moment');
 const uid = require('uuid');
+require('../utils/functions');
 
-
+// TODO: password hash
 
 router.post('/login', (req, res) => {
     try {
@@ -64,9 +64,10 @@ router.post('/register', (req, res) => {
         const shrinkedUUID = uuid.substring(1, 16);
 
         const b = req.body;
-        if (checkObject(b) && checkParam(b.fullName) && checkParam(b.email) && checkParam(b.password) && checkParam(b.rePassword) && b.password === b.rePassword) {
-            pool.query('INSERT INTO users (uuid, full_name, email, password, isActive) VALUES (?,?,?,?,?)', [
-                shrinkedUUID, b.fullName, b.email, b.password, 1
+        console.log(checkObject(b) && checkParam(b.fullName) && checkParam(b.email) && checkParam(b.password) && checkParam(b.rePassword) && b.password === b.rePassword);
+        if (checkObject(b) && checkParam(b.fullName) && checkParam(b.email) && checkParam(b.password) && checkParam(b.rePassword) && b.password === b.rePassword && checkParam(b.gender)) {
+            pool.query('INSERT INTO users (uuid, full_name, email, password, isActive, gender) VALUES (?,?,?,?,?, ?)', [
+                shrinkedUUID, b.fullName, b.email, b.password, 1, b.gender
             ], (err, rows, fields) => {
                 if (!err) {
                     res.status(200).json({
