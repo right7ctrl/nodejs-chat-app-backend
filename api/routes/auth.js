@@ -3,22 +3,29 @@ const router = express.Router();
 const pool = require('../utils/db_pool');
 const jwt = require('jsonwebtoken');
 require('../utils/functions');
+const moment = require('moment');
 
 
 router.post('/login', (req, res) => {
     try {
         const b = req.body;
         if (checkObject(b) && checkParam(b.email) && checkParam(b.password)) {
-
-            pool.query('SELECT email, uuid, created_at, last_login_ip, profile_pic_url, full_name FROM users WHERE email=? AND password=? LIMIT 1', [b.email.toString(), b.password.toString()], (err, rows, fields) => {
+            pool.query('SELECT id, email, uuid, created_at, last_login_ip, profile_pic_url, full_name FROM users WHERE email=? AND password=? LIMIT 1', [b.email.toString(), b.password.toString()], (err, rows, fields) => {
                 let rowCount = Object.keys(rows).length;
                 if (!err) {
                     if (rowCount == 1) {
-                        var d = new Date();
+                        const d = new Date();
+                        const user = rows[0];
+                        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+                        console.log(user.id);
+                        pool.query("UPDATE users SET last_login_ip=?, last_login_at=? WHERE id=?", [ip, moment(new Date()).format("YYYY-MM-DD HH:mm:ss"), user.id], (err, rows, fields) => {
+                            delete user['id'];
+                        });
+
+
                         //to avoid the same tokens
-                        rows[0]['ca'] = d.getTime();
-                        const token = jwt.sign(JSON.stringify(rows[0]), process.env.JWT_SECRET);
-                        console.log(rows);
+                        user['ca'] = d.getTime();
+                        const token = jwt.sign(JSON.stringify(user), process.env.JWT_SECRET);
                         res.status(200).json({
                             status: 1,
                             token: token
@@ -47,7 +54,7 @@ router.post('/login', (req, res) => {
 
 
 router.post('/register', (req, res) => {
-   
+
 });
 
 
