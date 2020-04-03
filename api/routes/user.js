@@ -5,25 +5,46 @@ const jwt = require('jsonwebtoken');
 require('../utils/functions');
 // get online users
 router.post('/list/shuffle', (req, res) => {
-  console.log(process.env);
   try {
-    if (checkObject(req.body)) {
-      pool.query('SELECT uuid, full_name, profile_pic_url, isOnline FROM users ORDER BY RAND() LIMIT 20', (err, rows, fields) => {
+    const b = req.body;
+    if (checkObject(b) && checkParam(b.page)) {
+      let queryFilter = '';
+      let genderFilter = '';
+      let sql_fields = " uuid as UUID, full_name, profile_pic_url, isOnline, biography, gender ";
+      if (checkParam(b.queryy)) queryFilter = ' AND biography LIKE "' + b.queryy + '%" ';
+      var sql = "SELECT" + sql_fields + "FROM users WHERE isActive = 1 AND biography LIKE "+"da%"+" AND gender = ?";
+
+      pool.query(sql, [b.filter.gender], (err, rows, fields) => {
         if (!err) {
-          res.json(rows);
+
+          res.status(200).json({
+            items: rows,
+            sql: sql
+          });
+
         } else {
+
           console.log(err);
-          res.sendStatus(500);
+          res.status(500).send({
+            response: 2,
+            aa: sql,
+            data: sql,
+            err: err,
+          });
         }
       });
     } else {
-      res.status(400).send({
+
+      res.status(406).send({
         response: 2,
-        status: "Bad Request"
+        status: "Missing parameter(s)"
       });
     }
   } catch (e) {
-    res.sendStatus(500);
+    console.log(e);
+    res.status(500).json({
+      response: 2
+    });
   }
 });
 
