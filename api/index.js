@@ -1,10 +1,13 @@
-var app = require('express')();
-var http = require('http').createServer(app);
+const express = require('express');
+const app = express();
 
-app.get('/', function (req, res) {
-    res.send('<h1>Hello 22222</h1>');
-});
+// Settings
+app.set('port', process.env.PORT || 3000);
 
-app.listen(3308, () => {
-    console.log('App serving on port 3308');
+// Routes
+app.use(require('./routes/user'));
+
+// Starting the server
+app.listen(app.get('port'), () => {
+    console.log(`Server on port ${app.get('port')}`);
 });
