@@ -13,19 +13,21 @@ router.post('/login', (req, res) => {
         const b = req.body;
         if (checkObject(b) && checkParam(b.email) && checkParam(b.password)) {
             pool.query('SELECT id, email, uuid, created_at, last_login_ip, profile_pic_url, full_name FROM users WHERE email=? AND password=? LIMIT 1', [b.email.toString(), b.password.toString()], (err, rows, fields) => {
-                let rowCount = Object.keys(rows).length;
                 if (!err) {
+                    let rowCount = Object.keys(rows).length;
+
                     if (rowCount == 1) {
                         const d = new Date();
                         const user = rows[0];
                         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-                        pool.query("UPDATE users SET last_login_ip=?, last_login_at=? WHERE id=?", [ip, moment(new Date()).format("YYYY-MM-DD HH:mm:ss"), user.id], (err, rows, fields) => {
+                        user['ca'] = d.getTime();
+                        const token = jwt.sign(JSON.stringify(user), process.env.JWT_SECRET);
+                        pool.query("UPDATE users SET last_login_ip=?, last_login_at=?, token=? WHERE id=?", [ip, moment(new Date()).format("YYYY-MM-DD HH:mm:ss"), token, user.id], (err, rows, fields) => {
 
                         });
                         delete user['id'];
                         //to avoid the same tokens
-                        user['ca'] = d.getTime();
-                        const token = jwt.sign(JSON.stringify(user), process.env.JWT_SECRET);
+
                         res.status(200).json({
                             status: 1,
                             token: token
