@@ -13,25 +13,25 @@ router.post('/list', (req, res) => {
         if (b.offset != null && b.offset != undefined && typeof b.offset == 'number') offset = b.offset;
         pool.query('SELECT COUNT(id) as count FROM chats WHERE receiver_uuid=? OR sender_uuid=?', [req.userData.uuid, req.userData.uuid], (err, rows, fields) => {
             totalRows = rows[0].count;
-            console.log(totalRows);
-            console.log(offset);
             totalPages = Math.ceil(totalRows / limit);
-            const query_fields = ' chat_uuid as room, sender_uuid as sender, receiver_uuid as receiver, created_at ';
-            pool.query('SELECT' + query_fields + 'FROM chats WHERE receiver_uuid=? OR sender_uuid=? ORDER BY UNIX_TIMESTAMP(created_at) DESC LIMIT ' + limit + ' OFFSET ' + offset * limit, [req.userData.uuid, req.userData.uuid], (err, rows, fields) => {
-                if (!err) {
-                    res.json({
-                        response: 1,
-                        total_pages: totalPages - 1,
-                        items: rows
-                    });
-                } else {
-                    console.log(err);
-                    res.status(502).json({
-                        response: 2,
-                        msg: 111
-                    });
-                }
-            });
+            const query_fields = ' chat_uuid as room, created_at, sender_uuid as sender, receiver_uuid as receiver, getUserTitleByID(sender_id) as sender_title, getUserTitleByID(receiver_id) as receiver_title, getProfileImgByUUID(sender_uuid) as sender_profile_pic, getProfileImgByUUID(receiver_uuid) as receiver_profile_pic, getUserIsOnlineByUUID(receiver_uuid) as receiver_status, getUserIsOnlineByUUID(sender_uuid) as sender_status ';
+            pool.query('SELECT' + query_fields + 'FROM chats WHERE receiver_uuid=? OR sender_uuid=? ORDER BY UNIX_TIMESTAMP(created_at) DESC LIMIT '
+                + limit + ' OFFSET ' + offset * limit, [req.userData.uuid, req.userData.uuid], (err, rows, fields) => {
+                    if (!err) {
+                        res.json({
+                            response: 1,
+                            total_pages: totalPages - 1,
+                            items: rows
+                        });
+                    } else {
+                        console.log(err);
+                        res.status(502).json({
+                            response: 2,
+                            total_pages: 0,
+                            items: []
+                        });
+                    }
+                });
         });
 
     } catch (e) {
@@ -57,21 +57,23 @@ router.post('/detail', (req, res) => {
                 totalRows = rows[0].count;
                 totalPages = Math.ceil(totalRows / limit);
                 const query_fields = ' sender_uuid as sender, message, created_at ';
-                pool.query('SELECT' + query_fields + 'FROM messages WHERE chat_uuid=? ORDER BY UNIX_TIMESTAMP(created_at) DESC LIMIT ' + limit + ' OFFSET ' + offset * limit, [b.room], (err, rows, fields) => {
-                    if (!err) {
-                        res.json({
-                            'response': 1,
-                            total_pages: totalPages - 1,
-                            items: rows
-                        });
-                    } else {
-                        console.log(err);
-                        res.status(502).json({
-                            response: 2,
-                            msg: 111
-                        });
-                    }
-                });
+                pool.query('SELECT' + query_fields + 'FROM messages WHERE chat_uuid=? ORDER BY UNIX_TIMESTAMP(created_at) DESC LIMIT '
+                    + limit + ' OFFSET ' + offset * limit, [b.room], (err, rows, fields) => {
+                        if (!err) {
+                            res.json({
+                                'response': 1,
+                                total_pages: totalPages - 1,
+                                items: rows
+                            });
+                        } else {
+                            console.log(err);
+                            res.status(502).json({
+                                response: 2,
+                                total_pages: 0,
+                                items: []
+                            });
+                        }
+                    });
             });
 
         } else {

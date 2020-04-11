@@ -1,16 +1,22 @@
 var app = require('express')();
 var http = require('http').createServer(app);
 let io = require('socket.io').listen(http);
-let mysql = require('mysql2');
+const mysql = require('mysql2');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+console.log('sa', process.env.DB_HOST);
 
 const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    database: 'test',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
-});
+  });
 
 app.get('/', function (req, res) {
     res.send('<h1>Hello world</h1>');
@@ -71,11 +77,15 @@ io.sockets.on('connect', (socket) => {
                 /*   pool.query("SELECT field FROM atable", function(err, rows, fields) {
                       // Connection is automatically released when query resolves
                    }) */
-                socket.to(data.to).emit('receive_msg', {
-                    "from": uuid,
+                socket.to('3c56d4056974934').emit('receive_msg', {
+                    "from": data.sender,
+                    "room": data.room,
                     "message": data.message,
                     "onCreate": data.onCreate
                 });
+                pool.query('INSERT INTO messages (chat_uuid, message, sender_uuid) VALUES (?,?,?)', [
+                    data.room, data.message, data.sender
+                ], (err, rows, fields) => { if (err) console.log(err); });
                 // TODO: handle message sent and seen status
             } else {
                 console.log('Unauthorized msg attempt', data);
@@ -114,6 +124,6 @@ io.sockets.on('connect', (socket) => {
 
 });
 
-http.listen(3000, function () {
-    console.log('listening on *:3000');
+http.listen(3060, function () {
+    console.log('listening on *:3060');
 });

@@ -6,36 +6,30 @@
     <title>Document</title>
   </head>
   <body>
-    <input type="text" placeholder="username" id="unmid" />
-    <input type="text" placeholder="uid" id="uuidd" />
     <input type="text" placeholder="msg" id="msgg" />
-    <button onclick="registerSocket()" id="conn">conn</button>
     <button onclick="sendMessage()" id="conn">msg</button>
 
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script>
       var connected = false;
       var socket;
+      var uid = "62dba345f9241ba";
+      socket = io("http://localhost:3060", { query: "uuid=" + uid });
 
-      function registerSocket() {
-        var unm = document.getElementById("unmid");
-        var uid = document.getElementById("uuidd").value;
-        socket = io("http://localhost:3000", { query: "uuid=" + uid });
-
-        socket.on("connect", function() {
-          socket.emit("register", { uuid: uid, uname: unm.value });
-          socket.on("receive_msg", data => {
-            console.log(data);
-          });
-          socket.on("disconnect", data => {});
+      socket.on("connect", function () {
+        socket.emit("register", { uuid: uid });
+        socket.on("receive_msg", (data) => {
+          console.log(data);
         });
-      }
+        socket.on("disconnect", (data) => {});
+      });
 
       function sendMessage() {
         socket.emit("send_msg", {
-          to: 789675775,
-          message: document.getElementById('msgg').value,
-          onCreate: "test"
+          room: "6206e0fe5604852-3c56d4056974934",
+          message: "tsdasdadasdasd",
+          onCreate: "${DateTime.now()}",
+          sender: uid,
         });
       }
     </script>
